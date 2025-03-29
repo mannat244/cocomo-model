@@ -1,103 +1,161 @@
-import Image from "next/image";
+"use client"
+import { useState } from "react";
+import FlapDiv from "./components/FlapDiv";
+import COCOMOFactors from "./components/COCOMOFactors";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.js
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [Effort, setEffort] = useState(null);
+  const [Duration, setDuration] = useState(null);
+  const [Person, setPerson] = useState(null);
+  const [Productivity, setProductivity] = useState(null);
+  const [projectDetails, setProjectDetails] = useState(null);
+  const [constants, setconstants] = useState(null)
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const handleSubmit = (event) => {
+    event.preventDefault(); 
+    const kloc = parseFloat(event.target.kloc.value) || 0;
+    const projectType = parseInt(event.target.project_type.value, 10);
+
+    const cocomoConstants = {
+      1: { name: "Organic", a: 2.4, b: 1.05, c: 2.5, d: 0.38 },
+      2: { name: "Semi-Detached", a: 3.0, b: 1.12, c: 2.5, d: 0.35 },
+      3: { name: "Embedded", a: 3.6, b: 1.20, c: 2.5, d: 0.32 },
+    };
+
+    if (!cocomoConstants[projectType] || kloc <= 0) {
+      alert("Please enter valid KLOC and select a project type.");
+      return;
+    }
+
+    // List of field names corresponding to the COCOMO factors.
+    const factorNames = [
+      "reliability",
+      "database_size",
+      "complexity",
+      "runtime_constraints",
+      "memory_constraints",
+      "vm_volatility",
+      "turnaround_time",
+      "analyst_capability",
+      "applications_experience",
+      "software_engineer_capability",
+      "vm_experience",
+      "programming_experience",
+      "software_methods",
+      "software_tools"
+    ];
+
+    // Multiply only the factor fields to calculate EAF.
+    const eaf = factorNames.reduce((acc, name) => {
+      const field = event.target[name];
+      const value = field ? parseFloat(field.value) : 1.0;
+      return acc * (value || 1.0);
+    }, 1.0);
+
+    const { a, b, c, d, name } = cocomoConstants[projectType];
+    setconstants(`(a: ${a}, b: ${b}, c: ${c}, d: ${d})`)
+    const estimatedEffort = a * Math.pow(kloc, b) * eaf;
+    const estimatedDuration = c * Math.pow(estimatedEffort, d);
+    const estimatedPerson = estimatedEffort / estimatedDuration;
+    const estimatedProductivity = estimatedEffort / estimatedPerson;
+
+    setEffort(estimatedEffort.toFixed(2));
+    setDuration(estimatedDuration.toFixed(2));
+    setPerson(estimatedPerson.toFixed(2));
+    setProductivity(estimatedProductivity.toFixed(2));
+    setProjectDetails(name);
+  };
+
+  return (
+    <div>
+      <div className="w-[90%] mx-auto bg-blue-100 h-52 mt-10 rounded-lg flex items-center justify-center relative overflow-hidden">
+  <div className="text-center z-10">
+    <h1 className="text-4xl font-bold text-blue-900">COCOMO Estimator</h1>
+    <p className="mt-2 text-lg text-blue-700">
+      Effort Estimation Made Simple: Accurately assess your software project requirements.
+    </p>
+  </div>
+  <div className="absolute inset-0 opacity-20">
+    <svg className="w-full h-full" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="100" cy="100" r="80" fill="#ffffff" />
+    </svg>
+  </div>
+</div>
+
+
+      <form onSubmit={handleSubmit}>
+        <div className="w-[90%] mx-auto bg-zinc-100 h-fit flex items-center flex-col mt-20 mb-10 rounded-lg p-5">
+          <h1 className="text-xl font-bold text-zinc-800">
+            Project Complexity Assessment
+          </h1>
+          <p className="font-medium mt-2 text-zinc-600">
+            Answer the following questions to determine the Effort Adjustment Factor (EAF)
+            based on key project attributes.
+          </p>
+          <FlapDiv>
+             <COCOMOFactors />
+          </FlapDiv>
+         
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        <div className="w-[90%] mx-auto bg-zinc-100 h-fit flex items-center flex-col mt-20 mb-10 rounded-lg p-5">
+          <h1 className="text-xl font-bold text-zinc-800">
+            Project Details
+          </h1>
+          <p className="font-medium mt-2 text-zinc-600">
+            Enter additional project information.
+          </p>
+          <div className="mt-2 flex items-center justify-center">
+            <label htmlFor="kloc" className="font-semibold">
+              Enter The Kilo Lines of Code (KLOC)
+            </label>
+            <input
+              className="ml-2 bg-zinc-300 rounded-sm font-semibold p-0.5 focus:outline-0"
+              type="number"
+              id="kloc"
+              name="kloc"
+            />
+          </div>
+          <div className="mt-2 flex items-center justify-center">
+            <label htmlFor="project_type" className="font-semibold">
+              Select Type of Project
+            </label>
+            <select
+              className="ml-2 bg-zinc-300 p-0.5 rounded-sm focus:outline-0"
+              id="project_type"
+              name="project_type"
+            >
+              <option value="">Choose</option>
+              <option value={1}>Organic</option>
+              <option value={2}>Semi-Detached</option>
+              <option value={3}>Embedded</option>
+            </select>
+          </div>
+          <button className="px-10 active:bg-blue-600 py-1 mt-5 rounded-md bg-blue-500 font-semibold text-white text-lg text-center">
+            Estimate
+          </button>
+        </div>
+      </form>
+
+      {Effort && Duration && (
+        <div className="w-[90%] mx-auto bg-zinc-100 h-fit flex items-center flex-col mt-10 mb-20 rounded-lg p-5">
+          <h1 className="text-xl font-bold text-zinc-800">Estimation Results</h1>
+          <p className="font-medium text-zinc-600">
+            Project Type: <strong>{projectDetails} {constants}</strong>
+          </p>
+          <p className="font-medium text-zinc-600">
+            Effort (Person-Months): <strong>{Effort}</strong>
+          </p>
+          <p className="font-medium text-zinc-600">
+            Time Taken (Months): <strong>{Duration}</strong>
+          </p>
+          <p className="font-medium text-zinc-600">
+            Number of Developers: <strong>{Person}</strong>
+          </p>
+          <p className="font-medium text-zinc-600">
+            Productivity (KLOC/Person-Month): <strong>{Productivity}</strong>
+          </p>
+        </div>
+      )}
     </div>
   );
 }
