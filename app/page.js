@@ -17,8 +17,8 @@ export default function Home() {
     const projectType = parseInt(event.target.project_type.value, 10);
 
     const cocomoConstants = {
-      1: { name: "Organic", a: 2.4, b: 1.05, c: 2.5, d: 0.38 },
-      2: { name: "Semi-Detached", a: 3.0, b: 1.12, c: 2.5, d: 0.35 },
+      1: { name: "Organic", a: 3.2, b: 1.05, c: 2.5, d: 0.38 },
+      2: { name: "Semi-Detached", a: 3.0, b: 1.12, c: 2.5, d: 0.38 },
       3: { name: "Embedded", a: 3.6, b: 1.20, c: 2.5, d: 0.32 },
     };
 
@@ -110,7 +110,7 @@ export default function Home() {
             </label>
             <input
               className="ml-2 bg-zinc-300 rounded-sm font-semibold p-0.5 focus:outline-0"
-              type="number"
+              type="float"
               id="kloc"
               name="kloc"
             />
